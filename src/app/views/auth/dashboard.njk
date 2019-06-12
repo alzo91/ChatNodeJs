@@ -1,0 +1,224 @@
+<!doctype html>
+<html ng-app='ChatRondaweb'>
+  <head>
+
+    <title>Chat NodeJs - Dashboard Online</title>
+
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+
+    <link rel="stylesheet" type="text/css" href="public/styles/bootstrap/4.2.1/css/bootstrap.css" />
+    <link rel="stylesheet" type="text/css" href="public/styles/bootstrap/4.2.1/css/bootstrap.min.css" />
+
+    <script src="public/jquery/3.2.1/jquery-3.2.1.js" type="text/javascript"></script>
+    <script src="public/jquery/3.2.1/jquery-3.2.1.min.js" type="text/javascript"></script>
+    <script src="public/styles/bootstrap/4.2.1/js/bootstrap.js" type="text/javascript"></script>
+    <script src="public/styles/bootstrap/4.2.1/js/bootstrap.min.js" type="text/javascript"></script>
+
+    <script src="public/angular/1.7.6/angular.js"></script>
+
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+
+    <script>
+        angular.module('ChatRondaweb',[]);
+
+        angular.module('ChatRondaweb').controller('ChatRondawebCtrl',function($scope){
+
+            $scope.objOp = localStorage.getItem('objOperadorChat');
+            $scope.objOp = JSON.parse($scope.objOp);
+            $scope.objOp.email = '';
+            $scope.objOp.msg = '';
+            $scope.objOp.protocolo='';
+            console.log('chat ==> montou obj operador: ' + JSON.stringify($scope.objOp)) ;
+
+            $scope.TitleClerks = '';
+
+            $scope.TitleAtendentes= 'Atendentes Online';
+
+            $scope.ClerksChatOn = [
+                {id: 0, nome:'Nothing0', email:'alisson0@ineltec.com.br', Atedimento: false},
+                {id: 1, nome:'Nothing1', email:'alisson1@rondaweb.com.br', Atedimento: false},
+            ];
+
+            $scope.TitleClientsOn= 'Clientes Online';
+
+            $scope.UserChatOn = [
+                {id: 0,nome:"Alisson",empresa:"Empresa",email:"alisson@ineltec.com.br", Atendente:'',DataInit:''},
+                {id: 1,nome:"Sergio",empresa:"Rondaweb",email:"sergio@rondaweb.com.br", Atendente:'',DataInit:''}
+            ];
+
+            $scope.TitleUserAtivo = '';
+
+            $scope.socket = io();
+
+            $scope.socket.emit('InEmployee',$scope.objOp);
+
+            $scope.socket.on('chat message', function(obj){
+
+                console.log("### chat message");
+                let strTextoRec = JSON.stringify(obj);
+                console.log(strTextoRec);
+                console.log('tamanho do obj' + obj.length)
+
+                if (obj.length>0){
+
+                    console.log('Entrou no RTSA ou RTSC');
+
+                    var count =0;
+
+                    for (e in obj){
+
+                        console.log(JSON.stringify(obj[e]))
+
+                        if (obj[e].protocolo === '#RTSA#'){
+                            if (count===0){
+                                $scope.ClerksChatOn =[];
+                            }
+                            console.log('Entrou no RTSA');
+                           $scope.ClerksChatOn.push({ id: 1, nome:obj[e].nome, email:obj[e].email, Atedimento: false });
+                        }
+
+                        if (obj[e].protocolo === '#RTSC#'){
+                            if (count===0){
+                                $scope.UserChatOn = [];
+                            }
+                            console.log('Entrou no RTSC');
+                            $scope.UserChatOn.push({id: 1, nome:obj[e].nome, empresa:obj[e].empresa,email:obj[e].email, Atedimento: false});
+                        }
+
+                        count = count + 1;
+                    };
+                    return;
+                }
+
+                if(obj.length === undefined){
+                    if (obj.msg.search('###')===0){
+                        console.log('passou aqui 1');
+                        document.getElementById('TitleClerks').innerHTML = obj.msg;
+                        $scope.TitleClerks = obj.msg;
+                        if (!(!!$scope.objOp.email)){
+                            $scope.objOp.email = obj.email
+                        }
+                        console.log('Title : ' + $scope.TitleClerks );
+                        //$scope.UserChatOn.push({email:obj.msg})
+                        //return;
+                    }
+
+                    if (obj.protocolo === '#MCTA#'){
+                        console.log('Entrou no MCTA');
+                        if (obj.msg !== obj.protocolo){
+                            console.log('Mensagem é diferente de protocolo');
+                            $('#mensagens').append("\n" + obj.msg);
+                            //document.getElementById('mesagens').value += '\n' + obj.msg;
+                        }
+                    }
+                }
+                //$('#mensagens').append("\n" + obj.msg);
+            });
+
+            $scope.fnEnvMsg = function(){
+                $scope.objOp.protocolo = "#MATC#"
+                $scope.objOp.msg = document.getElementById('txtMsg').value;
+                $scope.socket.emit('chat message',$scope.objOp);
+                $('#mensagens').append("\n" + $scope.objOp.msg);
+                $('#txtMsg').val("");
+                $('#txtMsg').focus();
+            }
+
+            $scope.fnOpenConClient = function(paramCampo){
+                console.log('Irá abrir conexao com.: ' + paramCampo.email);
+
+                $scope.TitleUserAtivo = 'Sessão conectada com cliente: ' + paramCampo.nome;
+
+                $scope.objOp.atendente = $scope.objOp.email;
+                $scope.objOp.NomeAtendente =$scope.objOp.nome;
+                $scope.objOp.cliente = paramCampo.email;
+                $scope.objOp.msg ='#CTC#'
+                $scope.objOp.protocolo = '#CTC#';
+                console.log(JSON.stringify($scope.objOp));
+                $scope.socket.emit('chat message',$scope.objOp);
+                $scope.fnOpenDiv('pagChat');
+            }
+
+           $scope.fnOpenDiv = function(pPag){
+                console.log(pPag);
+
+                if (pPag == 'pagAntendentes'){
+                    console.log('Entrou no Atendentes');
+                    document.getElementById('pagClientes').style.display = 'none';
+                    document.getElementById('pagChat').style.display = 'none';
+                    document.getElementById('pagAntendentes').style.display = 'block';
+                    return;
+                }
+
+                if (pPag == 'pagClientes'){
+                    console.log('Entrou no Clientes');
+                    document.getElementById('pagAntendentes').style.display = 'none';
+                    document.getElementById('pagClientes').style.display = 'block';
+                    document.getElementById('pagChat').style.display = 'none';
+                    return;
+                }
+
+                if (pPag == 'pagChat'){
+                    console.log('Entrou no Chat');
+                    document.getElementById('pagAntendentes').style.display = 'none';
+                    document.getElementById('pagClientes').style.display = 'none';
+                    document.getElementById('pagChat').style.display = 'block';
+                    return;
+                }
+            };
+        });
+
+    </script>
+  </head>
+  <body ng-controller='ChatRondawebCtrl'>
+    <div class="container-fluid">
+
+        <div style="align-self: center">
+            <h1 style="align-content: center;" ng-model='TitleChatRondaweb'>Chat - Atendimento</h1>
+            <p id='TitleClerks' ng-model='TitleClerks'>{{TitleClerks}}</p>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-4" style="margin-top: 2px;"><button class="btn btn-block btn-primary" ng-click="fnOpenDiv('pagAntendentes');">Atendente Online</button></div>
+            <div class="col-sm-4" style="margin-top: 2px;"><button class="btn btn-block btn-primary" ng-click='fnOpenDiv("pagClientes");'>Clientes Online</button></div>
+            <div class="col-sm-4" style="margin-top: 2px;"><button class="btn btn-block btn-primary" ng-click="fnOpenDiv('pagChat');">Chat Online</button></div>
+        </div>
+
+        <div id='pagAntendentes' nome='pagAntendentes' style="display:none">
+            <h4 style="margin-top: 10px">{{TitleAtendentes}}</h4>
+            <ul class="list-group">
+                <li ng-repeat="a in ClerksChatOn" id='{{a.email}}' name='{{a.email}}' class="list-group-item list-group-item-action list-group-item-primary">
+                    {{a.nome + ' - ' + a.email}}
+                </li>
+            </ul>
+        </div>
+
+        <div id='pagClientes' nome='pagClientes' style="display:block">
+            <h4 style="margin-top: 10px">{{TitleClientsOn}}</h4>
+                <ul class="list-group">
+                    <li ng-repeat="u in UserChatOn" id='{{u.email}}' name='{{u.email}}' class="list-group-item list-group-item-action list-group-item-success"
+                    ng-Click='fnOpenConClient(u)'>
+                        {{u.nome + ' - ' + u.email}}
+                    </li>
+                </ul>
+        </div>
+
+        <div id='pagChat' nome='pagChat' style="display:none; margin-top: 10px">
+
+            <div class="alert alert-success" id='txtAtendentesAtivo' nome='txtAtendentesAtivo' >
+                {{TitleUserAtivo}}
+            </div>
+
+            <div id="form" class="form-group" style="margin-top: 5px">
+                <textarea readonly class="form-control" rows="5" id="mensagens" style="margin-left: 5px; margin-right: 10px;"></textarea>
+                <input type="text" id="txtMsg" class="form-control" autocomplete="off" style="margin-left: 5px; margin-right: 10px; margin-top: 10px" placeholder="digite sua mensagem!" />
+                <button class="btn btn-block btn-outline-primary" id='btnSendMsg'
+                style="margin-left: 5px; margin-right: 10px; margin-top: 10px"
+                ng-click="fnEnvMsg()">
+                    Enviar Mensagem!
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

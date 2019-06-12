@@ -1,0 +1,93 @@
+{% extends "_layout/auth.njk" %}
+
+{% block body%}
+
+  <script>
+    var objUser = localStorage.getItem('UserChat');
+    objUser = JSON.parse(objUser);
+    objUser.protocolo = '';
+    objUser.msg = '';
+    objUser.atendente = '';
+    objUser.NomeAtendente = '';
+    console.log('chat ==> montou obj user: ' + JSON.stringify(objUser));
+  </script>
+
+  <div class="container-fluid">
+
+        <div id="form" class="form-group" style="margin-top: 5px">
+            <div class="alert alert-success" id='txtAtendentesAtivo' nome='txtAtendentesAtivo' style="margin-left: 5px; margin-top: 10px;" >
+                Aguardando um atendente entrar.....
+            </div>
+            <textarea readonly class="form-control" rows="5" id="mensagens" style="margin-left: 5px; margin-right: 10px;"></textarea>
+            <button id="btnAguarde" name="btnAguarde" class="btn btn-block btn-primary" style="margin-left: 5px; margin-right: 10px; margin-top: 10px;" disabled>
+                    <span class="spinner-border spinner-border-sm"></span>
+                    Aguarde...
+            </button>
+            <input type="text" id="txtMsg" class="form-control" autocomplete="off" style="margin-left: 5px; margin-right: 10px; margin-top: 10px;display: none " placeholder="digite sua mensagem!" />
+            <button class="btn btn-block btn-outline-primary" id='btnSendMsg' style="margin-left: 5px; margin-right: 10px; margin-top: 10px;display: none" onclick="fnEnvMsg()">Enviar Mensagem!</button>
+        </div>
+    </div>
+
+<script type="text/javascript" src="public/jquery/3.2.1/jquery-3.2.1.min.js"></script>
+<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+<script type="text/javascript">
+    var socket = io();
+
+    //socket.emit('entrar',objUser);
+    socket.emit('InClient',objUser);
+    //console.log(objUser.nome + '/' + objUser.empresa+ '/' + objUser.email);
+
+    //2019-06-11 21:54 -> novo adicionando caso o usuário desconect.
+    socket.on('disconnect',objUser);
+    socket.on('onclose',objUser);
+
+    socket.on('chat message', function(obj){
+
+        if (obj.length===undefined){
+
+            console.log("### chat message");
+            console.log(JSON.stringify(obj));
+            console.log('tamanho do obj: '+ obj.length);
+
+            if (obj.protocolo.search('#CTC') !== -1){
+
+                objUser.atendente = obj.atendente;
+                objUser.NomeAtendente = obj.NomeAtendente
+                if (obj.msg !== obj.protocolo){
+                    $('#mensagens').append("\n" + obj.msg);
+                }
+                document.getElementById('txtMsg').style.display = 'block';
+                document.getElementById('btnSendMsg').style.display = 'block';
+
+                document.getElementById('txtAtendentesAtivo').innerHTML = obj.msg;
+                document.getElementById('btnAguarde').style.display = 'none';
+
+                console.log('Foi atribuido o atendente: '+objUser.NomeAtendente);
+                return;
+            }
+
+            if (obj.protocolo.search('#MATC') !== -1){
+                objUser.atendente = obj.atendente;
+                objUser.NomeAtendente = obj.NomeAtendente
+                $('#mensagens').append("\n" + obj.msg);
+                return;
+            }
+
+            $('#mensagens').append("\n" + obj.msg);
+        }
+    });
+
+</script>
+
+<script>
+function fnEnvMsg(){
+    objUser.protocolo = '#MCTA#';
+    objUser.msg = document.getElementById('txtMsg').value;
+    socket.emit('chat message',objUser);
+    $('#mensagens').append("\n" + objUser.msg);
+    $('#txtMsg').val("");
+    $('#txtMsg').focus();
+}
+</script>
+{% endblock %}
+

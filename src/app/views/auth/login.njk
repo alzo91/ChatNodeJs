@@ -1,0 +1,57 @@
+{% extends "_layout/auth.njk" %}
+
+{% block body%}
+
+	<div class="container">
+		<div class="jumbotron" style="align-items: center">
+			<div alg ><h5>Chat NodeJs - Empresa</h5></div>
+
+		</div>
+		<form class="form-group" id="formLoginChat" name="formLoginChat" action="/dashboard" method="POST">
+
+			<div class="form-group">
+				<label>Nome: </label>
+				<input type="text" class="form-control" id='txtNome' name="txtNome" placeholder="Entre com seu nome de operador(a)" required>
+			</div>
+
+			<div class="form-group">
+				<label>Senha: </label>
+				<input type="password" class="form-control" id='txtPassword' name="txtPassword" placeholder="Entre com sua senha " required>
+			</div>
+		</form>
+
+		<button class="btn btn-block btn-outline-primary" id="btnEntrar" name="btnEntrar" onclick="fnValToChat()"> Entrar Chat !</button>
+	</div>
+</body>
+</html>
+<script>
+function fnValToChat(){
+	var strNome = document.getElementById('txtNome').value;
+
+	console.log(strNome + '' + !!strNome);
+
+	if (!(!!strNome)){
+		alert("Favor preencher o nome de operador(a)!");
+		document.getElementById('txtNome').focus();
+		return false;
+	}
+
+	var strPw = document.getElementById('txtPassword').value;
+	if(!(!!strPw)){
+		alert("Favor preencher o Senha!");
+		document.getElementById('txtEmpresa').focus();
+		return false;
+	}
+
+	var objOperadorChat = {
+		nome: strNome,
+		pass: strPw
+	}
+
+	localStorage.removeItem('objOperadorChat');
+	localStorage.setItem('objOperadorChat',JSON.stringify(objOperadorChat));
+
+	document.getElementById('formLoginChat').submit();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "_layout/auth.njk" %}
+
+{% block body%}
+<div class="form-group">
+		<div class="jumbotron" style="align-items: center">
+			<div alg ><h5>Chat NodeJs - Visitante</h5></div>
+		<form class="form-group" id="formLoginChat" name="formLoginChat" action="/chat" method="POST">
+
+			<div class="form-group">
+				<label>Nome: </label>
+				<input type="text" class="form-control" id='txtNome' name="txtNome" placeholder="Olá Visitante, entre com seu nome..." required>
+			</div>
+
+			<div class="form-group">
+				<label>Empresa: </label>
+				<input type="text" class="form-control" id='txtEmpresa' name="txtEmpresa" placeholder="entre com nome da empresa" required>
+			</div>
+
+			<div class="form-group">
+				<label>Email: </label>
+				<input type="email" class="form-control" id='txtEmail' name="txtEmail" placeholder="entre com seu e-mail" required>
+			</div>
+
+		</form>
+
+		<button class="btn btn-block btn-outline-primary" id="btnEntrar" name="btnEntrar" onclick="fnValToChat()"> Entrar Chat !</button>
+    </div>
+</div>
+
+<script>
+function fnValToChat(){
+	var strNome = document.getElementById('txtNome').value;
+
+	console.log(strNome + '' + !!strNome);
+
+	if (!(!!strNome)){
+		alert("Favor preencher o nome!");
+		document.getElementById('txtNome').focus();
+		return false;
+	}
+
+	var strEmpresa = document.getElementById('txtEmpresa').value;
+	if(!(!!strEmpresa)){
+		alert("Favor preencher o Empresa!");
+		document.getElementById('txtEmpresa').focus();
+		return false;
+	}
+
+	var strEmail = document.getElementById('txtEmail').value;
+	if(!(!!strEmail)){
+		alert("Favor preencher o E-mail!");
+		document.getElementById('txtEmail').focus();
+		return false;
+	}
+
+	var objUserChat = {
+		nome: strNome,
+		empresa: strEmpresa,
+		email: strEmail
+	}
+
+	localStorage.removeItem('UserChat');
+	localStorage.setItem('UserChat',JSON.stringify(objUserChat));
+
+	document.getElementById('formLoginChat').submit();
+}
+</script>
+
+{% endblock %}
