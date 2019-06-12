@@ -11,6 +11,7 @@ class NewServer {
     this.views()
     this.http = require('http').Server(this.app)
     this.io = require('socket.io')(this.http)
+
     this.routes()
     this.createSocket()
   }
@@ -24,9 +25,9 @@ class NewServer {
         let dateNow = moment(new Date()).format('DD/MM/Y HH:mm:ss')
 
         console.log('@@@socket:InClient' + dateNow) // console.log(obj)
-
+        console.log('@@@socket.id: ' + socket.id)
         // adicionar os dados do usuário no socket
-        socket.dataUser = obj
+        // socket.dataUser = obj
 
         // adicionar o cliente no array de online
         console.objClientOn[obj.email] = socket
@@ -201,7 +202,30 @@ class NewServer {
 
       socket.on('disconnect', function (obj) {
         // this.io.sockets.emit('chat message', { msg: 'user disconnected' })
-        console.log(obj)
+        console.log('### event disconnect => ' + obj)
+        console.log(socket.id)
+
+        /*
+        let newEmployeeOn = console.objEmployeeOn.filter(item => {
+          console.log(console.objEmployeeOn[item.email].id)
+
+          if (console.objEmployeeOn[item.email].id !== socket.id) {
+            return item
+          }
+        })
+
+        console.log(newEmployeeOn)
+        console.objEmployeeOn = newEmployeeOn
+
+        let newClientOn = console.objClientOn.filter(item => {
+          console.log(console.objClientOn[item.email].id)
+          if (console.objClientOn[item.email].id !== socket.id) {
+            return item
+          }
+        })
+        console.log(newClientOn)
+        console.objClientOn = newClientOn
+        */
       })
     })
 
