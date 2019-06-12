@@ -14,7 +14,6 @@ routes.get('/', (req, res) => {
   console.log('path default')
   console.log(req.body)
   return res.render('auth/singin.njk')
-  // status(200).json({ msg: 'path raiz', date: new Date() })
 })
 
 routes.get('/login', (req, res) => {
@@ -22,7 +21,6 @@ routes.get('/login', (req, res) => {
   console.log(req.body)
 
   return res.render('auth/login.njk')
-  // status(200).json({ msg: 'path Login' })
 })
 
 routes.post('/dashboard', (req, res) => {
@@ -52,7 +50,6 @@ routes.post('/chat', (req, res) => {
   console.log('path chat')
   console.log(req.body)
   return res.render('auth/chat.njk')
-  // status(200).json({ msg: 'path chat' })
 })
 
 module.exports = routes
